@@ -6,32 +6,20 @@ const PerformanceFlowABI = require("../artifacts/contracts/PerformanceFlow.sol/P
 
 async function main() {
 
+  const DEPOSIT = ethers.utils.parseEther("50");
+  const FLOWRATE = "385802469135802";
+
   const performanceFlowAddress = process.env.PERFORMANCE_FLOW_ADDRESS;
 
   const provider = new hre.ethers.providers.JsonRpcProvider(process.env.KOVAN_URL);
-
-  const sf = await Framework.create({
-    chainId: (await provider.getNetwork()).chainId,
-    provider,
-    customSubgraphQueriesEndpoint: "",
-    dataMode: "WEB3_ONLY"
-  });
 
   const signers = await hre.ethers.getSigners();
 
   const performanceFlow = new ethers.Contract(performanceFlowAddress, PerformanceFlowABI, provider);
 
-  const daix = await sf.loadSuperToken("fDAIx");
-
-  //approve contract to spend 1000 daix
-  const performanceFlowApproval = daix.approve({
-      receiver: performanceFlow.address,
-      amount: ethers.utils.parseEther("1000")
-  });
-
-  await performanceFlowApproval.exec(signers[0]).then(function (tx) {
+  const tx1 = await performanceFlow.connect(signers[0]).createFlow(DEPOSIT, FLOWRATE).then(function (tx) {
     console.log(`
-        Owner has approved the PerformanceFlow contract to withdraw fDAIx.
+        fDAIx deposited to contract and flow to service provider created 
         Tx Hash: ${tx.hash}
     `)
   });

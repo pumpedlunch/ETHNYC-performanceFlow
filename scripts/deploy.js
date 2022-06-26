@@ -2,19 +2,10 @@ const hre = require("hardhat");
 const { Framework } = require("@superfluid-finance/sdk-core");
 require("dotenv").config();
 
-//to run this script:
-//1) Make sure you've created your own .env file
-//2) Make sure that you have your network specified in hardhat.config.js
-//3) run: npx hardhat run scripts/deploy.js --network goerli
 async function main() {
-  // Hardhat always runs the compile task when running scripts with its command
-  // line interface.
-  //
-  // If this script is run directly using `node` you may want to call compile
-  // manually to make sure everything is compiled
-  // await hre.run('compile');
+  const receiver = "0x64e89807E4C2c006202834404FDb40C6F13a4279";
 
-  const provider = new hre.ethers.providers.JsonRpcProvider(process.env.GOERLI_URL);
+  const provider = new hre.ethers.providers.JsonRpcProvider(process.env.KOVAN_URL);
 
   const sf = await Framework.create({
     chainId: (await provider.getNetwork()).chainId,
@@ -24,14 +15,15 @@ async function main() {
   });
 
   const signers = await hre.ethers.getSigners();
+
   // We get the contract to deploy
-  const MoneyRouter = await hre.ethers.getContractFactory("MoneyRouter");
+  const PerformanceFlow = await hre.ethers.getContractFactory("PerformanceFlow");
+  
   //deploy the money router account using the proper host address and the address of the first signer
-  const moneyRouter = await MoneyRouter.deploy(sf.settings.config.hostAddress, signers[0].address);
+  const performanceFlow = await PerformanceFlow.deploy(sf.settings.config.hostAddress, receiver);
+  await performanceFlow.deployed();
 
-  await moneyRouter.deployed();
-
-  console.log("MoneyRouter deployed to:", moneyRouter.address);
+  console.log("New PerformanceFlow Contract deployed to:", performanceFlow.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
